@@ -55,6 +55,9 @@ button{font:inherit;cursor:pointer}
 .segmentat button:first-child{border-left:0}
 .segmentat button[aria-pressed="true"]{background:var(--riu);color:#fff}
 
+.consentiment{display:flex;gap:.75rem;align-items:flex-start;background:var(--sup);border:1.5px solid var(--line);border-radius:.5rem;padding:.9rem 1rem;margin-bottom:1rem;max-width:62ch;font-size:.98rem;cursor:pointer}
+.consentiment input{width:1.2rem;height:1.2rem;margin-top:.15rem;accent-color:var(--riu);flex:none}
+
 /* Resultats */
 .llista{list-style:none;padding:0;margin:0 0 2rem;border-top:1px solid var(--line)}
 .llista li{border-bottom:1px solid var(--line)}
@@ -94,6 +97,13 @@ details[open] .mes::after{content:"Amaga el detall"}
 <main id="app"></main>
 
 <script>
+// ============================================================
+// RECOLLIDA DE RESPOSTES
+// Enganxa aquí l'URL de l'aplicació web d'Apps Script (acaba en /exec).
+// Si es deixa buit, no es mostra la casella i no s'envia res.
+// ============================================================
+const URL_RECOLLIDA = "https://script.google.com/macros/s/AKfycbwd-R9lZMi-xXKN9EmKkkKTyYfNGkPKqna5dZ0TFDHaADycD53GV7VFwkgFd6-sE2TZ4A/exec";
+
 // ============================================================
 // DADES. Tot el que cal editar és aquí.
 // Escala de posicions: -2 (molt en desacord) a +2 (molt d'acord)
@@ -166,8 +176,26 @@ const estat = {
   pas: "inici",
   i: 0,
   respostes: {},
-  importancia: Object.fromEntries(TEMES.map(t => [t.id, 2]))
+  importancia: Object.fromEntries(TEMES.map(t => [t.id, 2])),
+  consentiment: false,
+  enviat: false
 };
+
+// Envia una fila al full de càlcul: una columna per dimensió (-2..2, buit = "no ho sé")
+// i una columna per tema amb la importància (0..3). No s'envia cap dada identificativa.
+function envia() {
+  if (!URL_RECOLLIDA || !estat.consentiment || estat.enviat) return;
+  const fila = { versio: "pilot-1" };
+  DIMENSIONS.forEach(d => { fila[d.id] = estat.respostes[d.id] ?? ""; });
+  TEMES.forEach(t => { fila["imp_" + t.id] = estat.importancia[t.id]; });
+  fetch(URL_RECOLLIDA, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify(fila)
+  }).catch(() => {});
+  estat.enviat = true;
+}
 const app = document.getElementById("app");
 const nomTema = id => TEMES.find(t => t.id === id).nom;
 const etiqueta = v => (ESCALA.find(o => o.v === v) || {}).l || "sense posició";
@@ -259,6 +287,11 @@ function renderImportancia() {
             </div>
           </div>`).join("")}
       </div>
+      ${URL_RECOLLIDA && !estat.enviat ? `
+        <label class="consentiment">
+          <input type="checkbox" id="consent" ${estat.consentiment ? "checked" : ""}>
+          <span>Accepto que les meves respostes es guardin de manera anònima per fer estadístiques agregades. No es recull cap dada que m’identifiqui.</span>
+        </label>` : ""}
       <div class="nav">
         <button class="secundari" id="enrere">Pregunta anterior</button>
         <button class="primari" id="veure">Mostra els resultats</button>
@@ -268,8 +301,10 @@ function renderImportancia() {
     estat.importancia[b.dataset.t] = Number(b.dataset.v);
     b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
   });
+  const consent = document.getElementById("consent");
+  if (consent) consent.onchange = () => { estat.consentiment = consent.checked; };
   document.getElementById("enrere").onclick = () => { estat.pas = "pregunta"; estat.i = DIMENSIONS.length - 1; render(); };
-  document.getElementById("veure").onclick = () => { estat.pas = "resultats"; render(); };
+  document.getElementById("veure").onclick = () => { envia(); estat.pas = "resultats"; render(); };
   document.getElementById("enunciat").focus();
 }
 
@@ -344,6 +379,8 @@ function renderResultats() {
   document.getElementById("reinicia").onclick = () => {
     estat.respostes = {};
     estat.importancia = Object.fromEntries(TEMES.map(t => [t.id, 2]));
+    estat.consentiment = false;
+    estat.enviat = false;
     estat.pas = "inici";
     render();
   };
