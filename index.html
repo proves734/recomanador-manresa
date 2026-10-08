@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Recomanador electoral Manresa 2027 (pilot)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F2F4F1; --sup:#FFFFFF; --ink:#1C2B33; --muted:#56666C; --line:#D2D9D4;
+  --riu:#1F6E6A; --riu-fosc:#16524F; --pedra:#B8862F;
+  --titol:'Bricolage Grotesque', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:'Atkinson Hyperlegible',system-ui,-apple-system,'Segoe UI',sans-serif;font-size:1.0625rem;line-height:1.55}
+.capcalera{max-width:760px;margin:0 auto;padding:1.25rem 1.25rem 0;display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.marca{font-family:var(--titol);font-weight:700;font-size:1.05rem}
+.etiqueta-pilot{font-size:.85rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:.15rem .65rem}
+main{max-width:760px;margin:0 auto;padding:2.5rem 1.25rem 4rem}
+h1,h2,h3{font-family:var(--titol);line-height:1.12;letter-spacing:-.02em;margin:0}
+h1{font-size:clamp(2.2rem,6vw,3.6rem);font-weight:800;max-width:14ch;margin-bottom:1.25rem}
+h2{font-size:clamp(1.5rem,3.6vw,2.15rem);font-weight:700;margin-bottom:1.5rem;max-width:30ch}
+h2:focus{outline:none}
+.lead{font-size:1.15rem;color:var(--muted);max-width:60ch;margin:0 0 1.5rem}
+.avis{background:var(--sup);border-left:4px solid var(--pedra);padding:.8rem 1rem;max-width:60ch;margin:0 0 2rem;font-size:.98rem}
+button{font:inherit;cursor:pointer}
+.primari{background:var(--riu);color:#fff;border:0;border-radius:.5rem;padding:.85rem 1.5rem;font-weight:700}
+.primari:hover{background:var(--riu-fosc)}
+.secundari{background:transparent;border:0;color:var(--riu-fosc);padding:.5rem 0;text-decoration:underline;text-underline-offset:3px}
+:focus-visible{outline:3px solid var(--pedra);outline-offset:2px}
+
+/* Preguntes */
+.progres{display:flex;justify-content:space-between;font-size:.95rem;color:var(--muted);margin-bottom:.5rem}
+.progres span:first-child{color:var(--riu-fosc);font-weight:700}
+.barra-progres{height:4px;background:var(--line);border-radius:2px;margin-bottom:2.5rem;overflow:hidden}
+.barra-progres div{height:100%;background:var(--riu)}
+.opcions{display:grid;grid-template-columns:repeat(5,1fr);gap:.5rem;margin-bottom:1.5rem}
+.opcio{background:var(--sup);border:1.5px solid var(--line);border-radius:.5rem;padding:1rem .5rem;min-height:4.5rem;color:var(--ink);line-height:1.25}
+.opcio:hover{border-color:var(--riu)}
+.opcio[aria-pressed="true"]{background:var(--riu);border-color:var(--riu);color:#fff}
+.nav{display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-top:1rem}
+@media (max-width:600px){
+  .opcions{grid-template-columns:1fr}
+  .opcio{min-height:auto;padding:.85rem 1rem;text-align:left}
+}
+
+/* Importància */
+.temes{border-top:1px solid var(--line);margin-bottom:2rem}
+.tema-fila{display:flex;justify-content:space-between;align-items:center;gap:.75rem 1rem;padding:.85rem 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tema-nom{font-weight:700}
+.segmentat{display:inline-flex;border:1.5px solid var(--line);border-radius:.5rem;overflow:hidden;background:var(--sup)}
+.segmentat button{border:0;border-left:1px solid var(--line);background:transparent;padding:.45rem .85rem;color:var(--ink)}
+.segmentat button:first-child{border-left:0}
+.segmentat button[aria-pressed="true"]{background:var(--riu);color:#fff}
+
+/* Resultats */
+.llista{list-style:none;padding:0;margin:0 0 2rem;border-top:1px solid var(--line)}
+.llista li{border-bottom:1px solid var(--line)}
+summary{list-style:none;display:grid;grid-template-columns:1fr auto;align-items:baseline;gap:.4rem 1rem;padding:1.1rem 0;cursor:pointer}
+summary::-webkit-details-marker{display:none}
+.nom{font-family:var(--titol);font-weight:700;font-size:1.3rem}
+.pct{font-family:var(--titol);font-weight:800;font-size:1.6rem;font-variant-numeric:tabular-nums;color:var(--c)}
+.pista{grid-column:1/-1;height:10px;background:var(--line);border-radius:5px;overflow:hidden}
+.omple{display:block;height:100%;width:0;background:var(--c);border-radius:5px;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+.mes{grid-column:1/-1;font-size:.92rem;color:var(--riu-fosc);text-decoration:underline;text-underline-offset:3px}
+.mes::after{content:"Mostra el detall"}
+details[open] .mes::after{content:"Amaga el detall"}
+.detall{padding:0 0 1.5rem}
+.llegenda{display:flex;gap:1.25rem;align-items:center;font-size:.92rem;color:var(--muted);margin:0 0 .5rem}
+.llegenda span{display:inline-flex;align-items:center;gap:.45rem}
+.tema-detall{margin-top:1.25rem}
+.tema-detall h3{font-size:1.1rem;display:flex;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--line);padding-bottom:.35rem;margin-bottom:.25rem}
+.tema-detall h3 span{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:600}
+.dim{padding:.7rem 0}
+.dim p{margin:0 0 .6rem;font-size:.98rem;max-width:62ch}
+.regle{position:relative;height:24px;margin:0 11px}
+.regle::before{content:"";position:absolute;left:0;right:0;top:50%;height:2px;background:var(--line);transform:translateY(-50%)}
+.tick{position:absolute;top:50%;width:2px;height:10px;background:var(--line);transform:translate(-50%,-50%)}
+.punt{position:absolute;top:50%;border-radius:50%;transform:translate(-50%,-50%)}
+.punt.partit{width:12px;height:12px;background:var(--c)}
+.punt.tu{width:22px;height:22px;border:3px solid var(--pedra)}
+.llegenda .punt{position:static;transform:none;display:inline-block}
+.extrems{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-top:.15rem}
+@media (prefers-reduced-motion:reduce){.omple{transition:none}}
+</style>
+</head>
+<body>
+<header class="capcalera">
+  <span class="marca">Manresa 2027</span>
+  <span class="etiqueta-pilot">Versió pilot</span>
+</header>
+<main id="app"></main>
+
+<script>
+// ============================================================
+// DADES. Tot el que cal editar és aquí.
+// Escala de posicions: -2 (molt en desacord) a +2 (molt d'acord)
+// ============================================================
+const TEMES = [
+  { id: "seg", nom: "Seguretat" },
+  { id: "imm", nom: "Immigració" },
+  { id: "hab", nom: "Habitatge" },
+  { id: "mob", nom: "Mobilitat" },
+  { id: "net", nom: "Neteja i manteniment" },
+  { id: "fis", nom: "Fiscalitat" },
+  { id: "con", nom: "Convivència i llibertat d’expressió" },
+  { id: "cat", nom: "Catalunya i Espanya" },
+  { id: "rel", nom: "Relació amb Barcelona i la Generalitat" }
+];
+
+const DIMENSIONS = [
+  { id: "s1", tema: "seg", text: "Per millorar la seguretat, l’Ajuntament hauria de prioritzar la prevenció (educació, mediació, serveis socials) per davant de les sancions." },
+  { id: "s2", tema: "seg", text: "Manresa necessita més agents de policia municipal." },
+  { id: "s3", tema: "seg", text: "Els problemes de seguretat tenen més a veure amb causes socials que amb la manca de control." },
+  { id: "i1", tema: "imm", text: "En general, la immigració enriqueix Manresa." },
+  { id: "i2", tema: "imm", text: "L’Ajuntament hauria de dedicar més recursos a l’acollida de persones nouvingudes." },
+  { id: "i3", tema: "imm", text: "L’Ajuntament hauria d’intervenir per reduir la concentració d’alumnat d’origen estranger en algunes escoles." },
+  { id: "i4", tema: "imm", text: "Totes les persones que viuen a Manresa s’haurien de poder empadronar, encara que no tinguin un habitatge regularitzat." },
+  { id: "h1", tema: "hab", text: "L’Ajuntament hauria d’intervenir el mercat de l’habitatge (limitar preus, sancionar pisos buits), encara que això desincentivi la inversió privada." },
+  { id: "h2", tema: "hab", text: "L’Ajuntament hauria de destinar més pressupost a habitatge, encara que calgui reduir-lo en altres àrees." },
+  { id: "h3", tema: "hab", text: "Cal prioritzar la rehabilitació d’edificis existents per davant de la construcció de nous habitatges." },
+  { id: "m1", tema: "mob", text: "Cal guanyar espai per a vianants i bicicletes al centre, encara que això suposi menys espai per al cotxe." },
+  { id: "m2", tema: "mob", text: "Per connectar Manresa amb Barcelona, cal prioritzar el transport públic per davant de noves infraestructures viàries." },
+  { id: "m3", tema: "mob", text: "La zona de baixes emissions s’hauria d’aplicar amb rigor, encara que afecti els conductors amb vehicles antics." },
+  { id: "n1", tema: "net", text: "El nou sistema de contenidors s’hauria de mantenir i consolidar." },
+  { id: "n2", tema: "net", text: "El servei de neteja l’hauria de gestionar directament l’Ajuntament en lloc d’una empresa externa." },
+  { id: "n3", tema: "net", text: "El Barri Antic hauria de tenir prioritat en la inversió en neteja i manteniment." },
+  { id: "f1", tema: "fis", text: "Preferiria pagar més impostos municipals a canvi de millors serveis públics." },
+  { id: "c1", tema: "con", text: "L’Ajuntament hauria de donar suport explícit a iniciatives antifeixistes." },
+  { id: "c2", tema: "con", text: "Les pintades i els cartells polítics a l’espai públic s’han de tolerar com a part de la llibertat d’expressió." },
+  { id: "k1", tema: "cat", text: "L’Ajuntament de Manresa hauria de donar suport a la independència de Catalunya." },
+  { id: "k2", tema: "cat", text: "L’Ajuntament hauria de promoure activament el català com a llengua de relació en tots els àmbits." },
+  { id: "r1", tema: "rel", text: "Per aconseguir més recursos per a Manresa, és millor cooperar amb la Generalitat i l’àrea de Barcelona que confrontar-s’hi." },
+  { id: "r2", tema: "rel", text: "La proximitat de Barcelona té un impacte positiu per a Manresa." }
+];
+
+// Candidatures i posicions INVENTADES per al pilot
+const CANDIDATURES = [
+  { id: "A", nom: "Candidatura A", color: "#2E6F95", posicions:
+    { s1:2, s2:-1, s3:2, i1:2, i2:2, i3:2, i4:2, h1:2, h2:2, h3:2, m1:2, m2:2, m3:1, n1:0, n2:2, n3:1, f1:1, c1:2, c2:1, k1:2, k2:2, r1:-1, r2:0 } },
+  { id: "B", nom: "Candidatura B", color: "#8A5A9E", posicions:
+    { s1:1, s2:0, s3:1, i1:1, i2:1, i3:2, i4:1, h1:1, h2:1, h3:0, m1:1, m2:1, m3:1, n1:1, n2:1, n3:1, f1:1, c1:1, c2:-1, k1:-2, k2:0, r1:2, r2:1 } },
+  { id: "C", nom: "Candidatura C", color: "#3F7F3D", posicions:
+    { s1:0, s2:1, s3:0, i1:1, i2:0, i3:1, i4:0, h1:-1, h2:0, h3:1, m1:0, m2:0, m3:-1, n1:-1, n2:-1, n3:1, f1:-1, c1:0, c2:-1, k1:2, k2:2, r1:1, r2:0 } },
+  { id: "D", nom: "Candidatura D", color: "#A65A2A", posicions:
+    { s1:-2, s2:2, s3:-2, i1:-2, i2:-2, i3:-1, i4:-2, h1:-1, h2:0, h3:-1, m1:-2, m2:-1, m3:-2, n1:-2, n2:-1, n3:0, f1:-2, c1:-2, c2:-2, k1:-2, k2:-1, r1:-1, r2:-1 } }
+];
+
+// ============================================================
+// LÒGICA
+// ============================================================
+const ESCALA = [
+  { v: -2, l: "Molt en desacord" },
+  { v: -1, l: "En desacord" },
+  { v:  0, l: "Ni d’acord ni en desacord" },
+  { v:  1, l: "D’acord" },
+  { v:  2, l: "Molt d’acord" }
+];
+const IMPORTANCIA = [
+  { v: 0, l: "Gens" }, { v: 1, l: "Poc" }, { v: 2, l: "Bastant" }, { v: 3, l: "Molt" }
+];
+
+const estat = {
+  pas: "inici",
+  i: 0,
+  respostes: {},
+  importancia: Object.fromEntries(TEMES.map(t => [t.id, 2]))
+};
+const app = document.getElementById("app");
+const nomTema = id => TEMES.find(t => t.id === id).nom;
+const etiqueta = v => (ESCALA.find(o => o.v === v) || {}).l || "sense posició";
+
+// Coincidència per dimensió: 1 - |u - p| / 4 (escala -2..+2)
+// Per tema: mitjana de les dimensions respostes
+// Global: mitjana dels temes ponderada per la importància
+function calcula(c) {
+  let num = 0, den = 0;
+  const perTema = {};
+  for (const t of TEMES) {
+    const dims = DIMENSIONS.filter(d =>
+      d.tema === t.id && estat.respostes[d.id] != null && c.posicions[d.id] != null);
+    if (!dims.length) continue;
+    const a = dims.reduce((s, d) =>
+      s + 1 - Math.abs(estat.respostes[d.id] - c.posicions[d.id]) / 4, 0) / dims.length;
+    perTema[t.id] = a;
+    const w = estat.importancia[t.id];
+    num += w * a;
+    den += w;
+  }
+  return { total: den > 0 ? num / den : null, perTema };
+}
+
+function render() {
+  window.scrollTo(0, 0);
+  if (estat.pas === "inici") renderInici();
+  else if (estat.pas === "pregunta") renderPregunta();
+  else if (estat.pas === "importancia") renderImportancia();
+  else renderResultats();
+}
+
+function renderInici() {
+  app.innerHTML = `
+    <section>
+      <h1>Amb quina candidatura coincideixes més?</h1>
+      <p class="lead">Respon ${DIMENSIONS.length} afirmacions sobre la ciutat, indica quins temes t’importen més i veuràs la teva coincidència amb cada candidatura, tema per tema.</p>
+      <p class="avis"><strong>Versió pilot.</strong> Les candidatures i les seves posicions són inventades per provar l’eina. No es guarda cap resposta.</p>
+      <button class="primari" id="comenca">Comença</button>
+    </section>`;
+  document.getElementById("comenca").onclick = () => { estat.pas = "pregunta"; estat.i = 0; render(); };
+}
+
+function seguent() {
+  if (estat.i < DIMENSIONS.length - 1) estat.i++;
+  else estat.pas = "importancia";
+  render();
+}
+
+function renderPregunta() {
+  const d = DIMENSIONS[estat.i];
+  const actual = estat.respostes[d.id];
+  app.innerHTML = `
+    <section>
+      <div class="progres"><span>${nomTema(d.tema)}</span><span>${estat.i + 1} de ${DIMENSIONS.length}</span></div>
+      <div class="barra-progres" aria-hidden="true"><div style="width:${estat.i / DIMENSIONS.length * 100}%"></div></div>
+      <h2 id="enunciat" tabindex="-1">${d.text}</h2>
+      <div class="opcions" role="group" aria-labelledby="enunciat">
+        ${ESCALA.map(o => `<button class="opcio" data-v="${o.v}" aria-pressed="${actual === o.v}">${o.l}</button>`).join("")}
+      </div>
+      <div class="nav">
+        <button class="secundari" id="enrere">${estat.i === 0 ? "Torna a l’inici" : "Pregunta anterior"}</button>
+        <button class="secundari" id="salta">No ho sé, salta-la</button>
+      </div>
+    </section>`;
+  app.querySelectorAll(".opcio").forEach(b => b.onclick = () => {
+    estat.respostes[d.id] = Number(b.dataset.v);
+    seguent();
+  });
+  document.getElementById("salta").onclick = () => { estat.respostes[d.id] = null; seguent(); };
+  document.getElementById("enrere").onclick = () => {
+    if (estat.i === 0) estat.pas = "inici"; else estat.i--;
+    render();
+  };
+  document.getElementById("enunciat").focus();
+}
+
+function renderImportancia() {
+  app.innerHTML = `
+    <section>
+      <h2 id="enunciat" tabindex="-1">Quins temes t’importen més?</h2>
+      <p class="lead">Els temes més importants per a tu pesaran més en el resultat. Si marques “Gens”, el tema no compta.</p>
+      <div class="temes">
+        ${TEMES.map(t => `
+          <div class="tema-fila">
+            <span class="tema-nom" id="tn-${t.id}">${t.nom}</span>
+            <div class="segmentat" role="group" aria-labelledby="tn-${t.id}">
+              ${IMPORTANCIA.map(o => `<button data-t="${t.id}" data-v="${o.v}" aria-pressed="${estat.importancia[t.id] === o.v}">${o.l}</button>`).join("")}
+            </div>
+          </div>`).join("")}
+      </div>
+      <div class="nav">
+        <button class="secundari" id="enrere">Pregunta anterior</button>
+        <button class="primari" id="veure">Mostra els resultats</button>
+      </div>
+    </section>`;
+  app.querySelectorAll(".segmentat button").forEach(b => b.onclick = () => {
+    estat.importancia[b.dataset.t] = Number(b.dataset.v);
+    b.parentElement.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b));
+  });
+  document.getElementById("enrere").onclick = () => { estat.pas = "pregunta"; estat.i = DIMENSIONS.length - 1; render(); };
+  document.getElementById("veure").onclick = () => { estat.pas = "resultats"; render(); };
+  document.getElementById("enunciat").focus();
+}
+
+function regle(d, c) {
+  const u = estat.respostes[d.id], p = c.posicions[d.id];
+  const pos = v => (v + 2) / 4 * 100;
+  return `
+    <div class="dim">
+      <p>${d.text}</p>
+      <div class="regle" role="img" aria-label="Tu: ${etiqueta(u)}. ${c.nom}: ${etiqueta(p)}.">
+        ${[0, 25, 50, 75, 100].map(x => `<span class="tick" style="left:${x}%"></span>`).join("")}
+        <span class="punt partit" style="left:${pos(p)}%"></span>
+        <span class="punt tu" style="left:${pos(u)}%"></span>
+      </div>
+      <div class="extrems" aria-hidden="true"><span>Molt en desacord</span><span>Molt d’acord</span></div>
+    </div>`;
+}
+
+function fila(r) {
+  const temes = TEMES.filter(t => r.perTema[t.id] !== undefined);
+  return `
+    <li><details style="--c:${r.c.color}">
+      <summary>
+        <span class="nom">${r.c.nom}</span>
+        <span class="pct">${Math.round(r.total * 100)}%</span>
+        <span class="pista" aria-hidden="true"><span class="omple" data-w="${r.total * 100}"></span></span>
+        <span class="mes"></span>
+      </summary>
+      <div class="detall">
+        <p class="llegenda">
+          <span><span class="punt tu"></span>Tu</span>
+          <span><span class="punt partit"></span>${r.c.nom}</span>
+        </p>
+        ${temes.map(t => `
+          <div class="tema-detall">
+            <h3>${t.nom}<span>${Math.round(r.perTema[t.id] * 100)}%${estat.importancia[t.id] === 0 ? " (no compta)" : ""}</span></h3>
+            ${DIMENSIONS.filter(d => d.tema === t.id && estat.respostes[d.id] != null && r.c.posicions[d.id] != null)
+              .map(d => regle(d, r.c)).join("")}
+          </div>`).join("")}
+      </div>
+    </details></li>`;
+}
+
+function renderResultats() {
+  const res = CANDIDATURES.map(c => ({ c, ...calcula(c) }))
+    .filter(r => r.total !== null)
+    .sort((a, b) => b.total - a.total);
+
+  if (!res.length) {
+    app.innerHTML = `
+      <section>
+        <h2 id="enunciat" tabindex="-1">Encara no podem calcular la coincidència</h2>
+        <p class="lead">Cal respondre almenys una pregunta i donar una mica d’importància a algun tema.</p>
+        <button class="primari" id="reinicia">Torna a començar</button>
+      </section>`;
+  } else {
+    app.innerHTML = `
+      <section>
+        <h2 id="enunciat" tabindex="-1">La teva coincidència amb cada candidatura</h2>
+        <p class="lead">Obre cada candidatura per veure en què coincidiu i en què no.</p>
+        <ol class="llista">${res.map(fila).join("")}</ol>
+        <p class="avis">Recorda que és un pilot: les candidatures i les posicions són inventades.</p>
+        <div class="nav">
+          <button class="secundari" id="importancia">Canvia la importància dels temes</button>
+          <button class="secundari" id="reinicia">Torna a començar</button>
+        </div>
+      </section>`;
+    document.getElementById("importancia").onclick = () => { estat.pas = "importancia"; render(); };
+    requestAnimationFrame(() => requestAnimationFrame(() =>
+      app.querySelectorAll(".omple").forEach(el => el.style.width = el.dataset.w + "%")));
+  }
+  document.getElementById("reinicia").onclick = () => {
+    estat.respostes = {};
+    estat.importancia = Object.fromEntries(TEMES.map(t => [t.id, 2]));
+    estat.pas = "inici";
+    render();
+  };
+  document.getElementById("enunciat").focus();
+}
+
+render();
+</script>
+</body>
+</html>
